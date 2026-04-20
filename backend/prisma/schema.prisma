@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model users {
+  id           Int       @id @default(autoincrement())
+  username     String    @unique @db.VarChar(50)
+  password_hash String   @db.VarChar(255)
+  nombre       String    @db.VarChar(100)
+  rol          Rol       @default(USUARIO)
+  activo       Boolean  @default(true)
+  created_at   DateTime @default(now())
+  viajes       viajes[]
+}
+
+model viajes {
+  id             Int       @id @default(autoincrement())
+  cedula         BigInt
+  concepto       Int
+  fecha_pago     DateTime  @db.Date
+  fecha_novedad  DateTime  @db.Date
+  numero         Int       @default(0)
+  valor          Decimal   @db.Decimal(12, 2)
+  observacion    String?   @db.Text
+  destino        String    @db.Char(1)
+  dependencia  String?   @db.VarChar(100)
+  usuario_id    Int
+  usuario       users     @relation(fields: [usuario_id], references: [id])
+  estado        Estado    @default(PENDIENTE)
+  created_at    DateTime  @default(now())
+  updated_at   DateTime  @default(now())
+
+  @@index([cedula])
+  @@index([fecha_pago])
+  @@index([estado])
+}
+
+model conceptos {
+  codigo Int      @id
+  nombre String?  @db.VarChar(100)
+  valor Decimal?  @db.Decimal(12, 2)
+}
+
+model dependencias {
+  codigo   String @id @db.VarChar(20)
+  nombre  String @db.VarChar(100)
+  nivel4  String? @db.VarChar(100)
+  nivel3  String? @db.VarChar(100)
+}
+
+enum Rol {
+  ADMIN
+  USUARIO
+}
+
+enum Estado {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+}
