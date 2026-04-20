@@ -60,7 +60,6 @@ export default function Centralizado() {
     }
   };
 
-  // Pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = viajes.slice(indexOfFirstItem, indexOfLastItem);
@@ -71,14 +70,14 @@ export default function Centralizado() {
       case 'APROBADO': return 'badge-success';
       case 'RECHAZADO': return 'badge-error';
       case 'PENDIENTE': return 'badge-warning';
-      default: return 'badge-gray';
+      default: return 'badge-primary';
     }
   };
 
   return (
-    <div>
+    <div className="animate-fade-in">
       {/* Page Header */}
-      <div className="page-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="page-title">Centralizado de Viáticos</h1>
           <p className="page-subtitle">{viajes.length} registros en total</p>
@@ -106,7 +105,7 @@ export default function Centralizado() {
       {/* Filters */}
       <div className="card mb-6">
         <form onSubmit={handleFilter} className="flex flex-wrap gap-4">
-          <div className="flex-1 min-w-[150px]">
+          <div className="flex-1 min-w-[160px]">
             <label className="label">Fecha inicio</label>
             <input
               type="date"
@@ -115,7 +114,7 @@ export default function Centralizado() {
               className="input"
             />
           </div>
-          <div className="flex-1 min-w-[150px]">
+          <div className="flex-1 min-w-[160px]">
             <label className="label">Fecha fin</label>
             <input
               type="date"
@@ -124,7 +123,7 @@ export default function Centralizado() {
               className="input"
             />
           </div>
-          <div className="flex-1 min-w-[150px]">
+          <div className="flex-1 min-w-[160px]">
             <label className="label">Cédula</label>
             <input
               type="text"
@@ -136,7 +135,12 @@ export default function Centralizado() {
           </div>
           <div className="flex items-end gap-2 w-full sm:w-auto">
             <button type="submit" className="btn btn-primary flex-1 sm:flex-none">
-              Filtrar
+              <span className="flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                Filtrar
+              </span>
             </button>
             <button 
               type="button" 
@@ -152,19 +156,21 @@ export default function Centralizado() {
         </form>
       </div>
 
-      {/* Table */}
+      {/* Table or Loading or Empty */}
       {loading ? (
-        <div className="flex items-center justify-center py-12">
+        <div className="flex items-center justify-center py-16">
           <div className="flex flex-col items-center gap-3">
-            <div className="w-10 h-10 border-4 border-gray-200 border-t-raised rounded-full animate-spin"></div>
-            <p className="text-gray-500">Cargando...</p>
+            <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+            <p className="text-text-light">Cargando...</p>
           </div>
         </div>
       ) : viajes.length === 0 ? (
         <div className="empty-state card">
-          <svg className="empty-state-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
+          <div className="empty-state-icon">
+            <svg className="w-full h-full" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </div>
           <h3 className="empty-state-title">No hay registros</h3>
           <p className="empty-state-description">No se encontraron viáticos con los filtros seleccionados.</p>
         </div>
@@ -184,10 +190,10 @@ export default function Centralizado() {
             <tbody>
               {currentItems.map((v) => (
                 <tr key={v.id}>
-                  <td className="font-medium">{v.cedula?.toString()}</td>
+                  <td className="font-semibold">{v.cedula?.toString()}</td>
                   <td>{v.concepto}</td>
                   <td>{v.fecha_pago?.split('T')[0]}</td>
-                  <td className="font-medium">${Number(v.valor).toLocaleString()}</td>
+                  <td className="font-semibold">${Number(v.valor).toLocaleString()}</td>
                   <td>{v.destino}</td>
                   <td>
                     <span className={`badge ${getBadgeClass(v.estado)}`}>
@@ -203,22 +209,22 @@ export default function Centralizado() {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4">
-          <p className="text-sm text-gray-500">
+        <div className="flex items-center justify-between mt-5">
+          <p className="text-sm text-text-light">
             Mostrando {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, viajes.length)} de {viajes.length}
           </p>
           <div className="flex gap-2">
             <button
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="btn btn-secondary py-1.5 px-3 text-sm"
+              className="btn btn-secondary py-2 px-4 text-sm"
             >
               Anterior
             </button>
             <button
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="btn btn-secondary py-1.5 px-3 text-sm"
+              className="btn btn-secondary py-2 px-4 text-sm"
             >
               Siguiente
             </button>
