@@ -25,17 +25,17 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-bold text-center mb-6">Viáticos FNC</h1>
+    <div className="min-h-screen flex items-center justify-center bg-base">
+      <div className="card w-full max-w-md">
+        <h1 className="title text-center">Viáticos FNC</h1>
         <form onSubmit={handleSubmit}>
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            <div className="error mb-4">
               {error}
             </div>
           )}
           <div className="mb-4">
-            <label className="block text-gray-700 mb-2">Usuario</label>
+            <label className="label">Usuario</label>
             <input
               type="text"
               value={username}
@@ -45,7 +45,7 @@ export default function Login() {
             />
           </div>
           <div className="mb-6">
-            <label className="block text-gray-700 mb-2">Contraseña</label>
+            <label className="label">Contraseña</label>
             <input
               type="password"
               value={password}
