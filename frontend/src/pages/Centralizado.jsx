@@ -8,6 +8,8 @@ export default function Centralizado() {
   const [loading, setLoading] = useState(true);
   const [filtros, setFiltros] = useState({ fecha_inicio: '', fecha_fin: '', cedula: '' });
   const [exporting, setExporting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   const fetchViajes = async () => {
     setLoading(true);
@@ -28,6 +30,7 @@ export default function Centralizado() {
 
   const handleFilter = (e) => {
     e.preventDefault();
+    setCurrentPage(1);
     fetchViajes();
   };
 
@@ -50,19 +53,60 @@ export default function Centralizado() {
         window.URL.revokeObjectURL(url);
       }, 100);
     } catch (err) {
+      console.error(err);
       alert('Error al exportar');
     } finally {
       setExporting(false);
     }
   };
 
+  // Pagination
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = viajes.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(viajes.length / itemsPerPage);
+
+  const getBadgeClass = (estado) => {
+    switch (estado) {
+      case 'APROBADO': return 'badge-success';
+      case 'RECHAZADO': return 'badge-error';
+      case 'PENDIENTE': return 'badge-warning';
+      default: return 'badge-gray';
+    }
+  };
+
   return (
     <div>
-      <div className="card mb-6">
-        <h2 className="title">Centralizado de Viáticos</h2>
+      {/* Page Header */}
+      <div className="page-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="page-title">Centralizado de Viáticos</h1>
+          <p className="page-subtitle">{viajes.length} registros en total</p>
+        </div>
+        <button onClick={handleExport} className="btn btn-primary">
+          {exporting ? (
+            <span className="flex items-center gap-2">
+              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              Exportando...
+            </span>
+          ) : (
+            <span className="flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Exportar Excel
+            </span>
+          )}
+        </button>
+      </div>
 
-        <form onSubmit={handleFilter} className="flex flex-wrap gap-4 mb-4">
-          <div>
+      {/* Filters */}
+      <div className="card mb-6">
+        <form onSubmit={handleFilter} className="flex flex-wrap gap-4">
+          <div className="flex-1 min-w-[150px]">
             <label className="label">Fecha inicio</label>
             <input
               type="date"
@@ -71,7 +115,7 @@ export default function Centralizado() {
               className="input"
             />
           </div>
-          <div>
+          <div className="flex-1 min-w-[150px]">
             <label className="label">Fecha fin</label>
             <input
               type="date"
@@ -80,7 +124,7 @@ export default function Centralizado() {
               className="input"
             />
           </div>
-          <div>
+          <div className="flex-1 min-w-[150px]">
             <label className="label">Cédula</label>
             <input
               type="text"
@@ -90,53 +134,97 @@ export default function Centralizado() {
               placeholder="Filtrar por cédula"
             />
           </div>
-          <div className="flex items-end gap-2">
-            <button type="submit" className="btn btn-primary">Filtrar</button>
-            <button type="button" onClick={() => { setFiltros({ fecha_inicio: '', fecha_fin: '', cedula: '' }); fetchViajes(); }} className="btn btn-secondary">Limpiar</button>
+          <div className="flex items-end gap-2 w-full sm:w-auto">
+            <button type="submit" className="btn btn-primary flex-1 sm:flex-none">
+              Filtrar
+            </button>
+            <button 
+              type="button" 
+              onClick={() => { 
+                setFiltros({ fecha_inicio: '', fecha_fin: '', cedula: '' }); 
+                fetchViajes(); 
+              }} 
+              className="btn btn-secondary flex-1 sm:flex-none"
+            >
+              Limpiar
+            </button>
           </div>
         </form>
-
-        <button onClick={handleExport} className="btn btn-secondary mb-4">
-          Exportar a Excel
-        </button>
-
-        {loading ? (
-          <p className="text-center py-4">Cargando...</p>
-        ) : viajes.length === 0 ? (
-          <p className="text-center py-4 text-tertiary">No hay registros</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Cédula</th>
-                  <th>Concepto</th>
-                  <th>Fecha Pago</th>
-                  <th>Valor</th>
-                  <th>Destino</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {viajes.map((v) => (
-                  <tr key={v.id}>
-                    <td>{v.cedula.toString()}</td>
-                    <td>{v.concepto}</td>
-                    <td>{v.fecha_pago?.split('T')[0]}</td>
-                    <td>${Number(v.valor).toLocaleString()}</td>
-                    <td>{v.destino}</td>
-                    <td>
-                      <span className={`badge ${v.estado === 'APROBADO' ? 'badge-success' : v.estado === 'RECHAZADO' ? 'badge-error' : ''}`}>
-                        {v.estado}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
       </div>
+
+      {/* Table */}
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-10 h-10 border-4 border-gray-200 border-t-raised rounded-full animate-spin"></div>
+            <p className="text-gray-500">Cargando...</p>
+          </div>
+        </div>
+      ) : viajes.length === 0 ? (
+        <div className="empty-state card">
+          <svg className="empty-state-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          <h3 className="empty-state-title">No hay registros</h3>
+          <p className="empty-state-description">No se encontraron viáticos con los filtros seleccionados.</p>
+        </div>
+      ) : (
+        <div className="table-container">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Cédula</th>
+                <th>Concepto</th>
+                <th>Fecha Pago</th>
+                <th>Valor</th>
+                <th>Destino</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentItems.map((v) => (
+                <tr key={v.id}>
+                  <td className="font-medium">{v.cedula?.toString()}</td>
+                  <td>{v.concepto}</td>
+                  <td>{v.fecha_pago?.split('T')[0]}</td>
+                  <td className="font-medium">${Number(v.valor).toLocaleString()}</td>
+                  <td>{v.destino}</td>
+                  <td>
+                    <span className={`badge ${getBadgeClass(v.estado)}`}>
+                      {v.estado}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4">
+          <p className="text-sm text-gray-500">
+            Mostrando {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, viajes.length)} de {viajes.length}
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="btn btn-secondary py-1.5 px-3 text-sm"
+            >
+              Anterior
+            </button>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="btn btn-secondary py-1.5 px-3 text-sm"
+            >
+              Siguiente
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
