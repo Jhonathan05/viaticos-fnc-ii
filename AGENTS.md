@@ -56,3 +56,10 @@ docker push puntijhon/viaticos-fnc-frontend:latest
 ## Notas
 - NO hacer push automático a GitHub o DockerHub sin previa autorización
 - Antes de hacer cambios importantes, confirmar con el usuario
+
+## Estado de Sesión (Última actualización: 2026-04-19)
+- ✅ Tema FNC implementado
+- ✅ UI/UX moderna implementada
+- ✅ Push a GitHub completado
+- ✅ Push a DockerHub completado
+- Contenedores corriendo en localhost:8080 (frontend), localhost:3000 (backend)
